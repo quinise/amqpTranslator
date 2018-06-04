@@ -1,0 +1,15 @@
+.form-content {
+    display: block;
+    width: 150px;
+    margin: 0 auto;
+}
+
+input{
+    margin: 10px;
+}
+
+.result-content{    
+    display: block;
+    width: 450px;
+    margin: 0 auto;
+}

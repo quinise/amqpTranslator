@@ -1,0 +1,21 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+@model translator.Models.TranslatorFormViewModel
+
+<head>
+    <link rel="stylesheet" href="~/css/style.css"/>
+</head>
+<div class="form-content">
+    <form asp-action="translate" asp-controller="Home" method="POST">
+        <textarea name="amqpText"></textarea>
+        <input type="submit" value="Translate">
+    </form>
+</div>
+<div class="result-content">
+    @foreach(var message in @ViewBag.result){
+        <p>@message</p>
+    }
+</div>
+

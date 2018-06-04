@@ -1,0 +1,11 @@
+/Users/incito/Desktop/translator/bin/Debug/netcoreapp2.0/translator.deps.json
+/Users/incito/Desktop/translator/bin/Debug/netcoreapp2.0/translator.runtimeconfig.json
+/Users/incito/Desktop/translator/bin/Debug/netcoreapp2.0/translator.runtimeconfig.dev.json
+/Users/incito/Desktop/translator/bin/Debug/netcoreapp2.0/translator.dll
+/Users/incito/Desktop/translator/bin/Debug/netcoreapp2.0/translator.pdb
+/Users/incito/Desktop/translator/obj/Debug/netcoreapp2.0/translator.csprojResolveAssemblyReference.cache
+/Users/incito/Desktop/translator/obj/Debug/netcoreapp2.0/translator.csproj.CoreCompileInputs.cache
+/Users/incito/Desktop/translator/obj/Debug/netcoreapp2.0/translator.AssemblyInfoInputs.cache
+/Users/incito/Desktop/translator/obj/Debug/netcoreapp2.0/translator.AssemblyInfo.cs
+/Users/incito/Desktop/translator/obj/Debug/netcoreapp2.0/translator.dll
+/Users/incito/Desktop/translator/obj/Debug/netcoreapp2.0/translator.pdb
