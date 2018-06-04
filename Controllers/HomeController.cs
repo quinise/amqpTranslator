@@ -19,65 +19,7 @@ namespace translator.Controllers
         [Route("translate")]
         public IActionResult Translate(TranslatorFormViewModel model)
         {
-            void addToArray(ref byte destination, byte source, int index){
-                if (index % 2 == 0){
-                    source = (byte)(source << 4);
-                }
-                destination |= source;  
-            }
-
-            int getInt32(byte[] source){
-                byte[] destination = new Byte[4];
-                Array.Copy(source, destination, 4);
-                Array.Reverse(destination);
-                return BitConverter.ToInt32(destination, 0);
-            }
-
-            int getInt16(byte[] source){
-                byte[] destination = new Byte[2];
-                Array.Copy(source, destination, 2);
-                Array.Reverse(destination);
-                return BitConverter.ToInt16(destination, 0);
-            }            
-            
-            List<string> amqpTranslate(byte[] source){
-                List<string> currentOutputList = new List<string>(new string[] {" "});
-                int i = 0;
-                int lengthOfFrame = getInt32(source);
-                i = i+4;
-                if(lengthOfFrame != source.Length){
-                    currentOutputList.Add("Frame length does not match provided frame");
-                    return currentOutputList;
-                } else {
-                    currentOutputList.Add("Frame Length: "+ lengthOfFrame +" bytes ");
-                    int dOff = 4 * source[i]; 
-                    currentOutputList.Add("Data offset at position: " + dOff);
-                    i++;
-                    if (source[i] == 0) {
-                        currentOutputList.Add("Frame type: AMQP");
-                        i++;
-                    } else if (source[i]== 1) {
-                        currentOutputList.Add("Frame type: SASL");
-                        i++;
-                    } else if (source[i] != 1) {
-                        currentOutputList.Add("Type not found");
-                    }
-
-                    int channel = getInt16(source.Skip(i).Take(2).ToArray());
-                    currentOutputList.Add("Channel: " + channel);
-                    i = i + 2;
-
-                    if (dOff == i) {
-                        currentOutputList.Add("No extended header");
-                    } else {
-                        currentOutputList.Add("Extended header present");
-                        i = dOff;
-                    }
-                    
-                    return currentOutputList;
-                }
-            }
-
+            Translator translator = new Translator();
             string result = model.amqpText;
             byte[] resultArr = new byte[result.Length/2];
 
@@ -94,55 +36,55 @@ namespace translator.Controllers
                         case '0':
                             break;
                         case '1':
-                            addToArray(ref resultArr[currentOutputPosition], (byte)1, i);
+                            translator.addToArray(ref resultArr[currentOutputPosition], (byte)1, i);
                             break;
                         case '2':
-                            addToArray(ref resultArr[currentOutputPosition], (byte)2, i);
+                            translator.addToArray(ref resultArr[currentOutputPosition], (byte)2, i);
                             break;
                         case '3':
-                             addToArray(ref resultArr[currentOutputPosition], (byte)3, i);
+                            translator.addToArray(ref resultArr[currentOutputPosition], (byte)3, i);
                             break;                    
                         case '4':
-                            addToArray(ref resultArr[currentOutputPosition], (byte)4, i);
+                            translator.addToArray(ref resultArr[currentOutputPosition], (byte)4, i);
                             break;
                         case '5':
-                          addToArray(ref resultArr[currentOutputPosition], (byte)5, i);
+                            translator.addToArray(ref resultArr[currentOutputPosition], (byte)5, i);
                             break;
                         case '6':
-                            addToArray(ref resultArr[currentOutputPosition], (byte)6, i);
+                            translator.addToArray(ref resultArr[currentOutputPosition], (byte)6, i);
                             break;
                         case '7':
-                            addToArray(ref resultArr[currentOutputPosition], (byte)7, i);
+                            translator.addToArray(ref resultArr[currentOutputPosition], (byte)7, i);
                             break;
                         case '8':
-                            addToArray(ref resultArr[currentOutputPosition], (byte)8, i);
+                            translator.addToArray(ref resultArr[currentOutputPosition], (byte)8, i);
                             break;
                         case '9':
-                            addToArray(ref resultArr[currentOutputPosition], (byte)9, i);
+                            translator.addToArray(ref resultArr[currentOutputPosition], (byte)9, i);
                             break;
                         case 'a':
                         case 'A':
-                             addToArray(ref resultArr[currentOutputPosition], (byte)10, i);                          
+                             translator.addToArray(ref resultArr[currentOutputPosition], (byte)10, i);                          
                             break;
                         case 'b':
                         case 'B':
-                             addToArray(ref resultArr[currentOutputPosition], (byte)11, i);
+                             translator.addToArray(ref resultArr[currentOutputPosition], (byte)11, i);
                             break;                    
                         case 'c':
                         case 'C':
-                            addToArray(ref resultArr[currentOutputPosition], (byte)12, i);
+                            translator.addToArray(ref resultArr[currentOutputPosition], (byte)12, i);
                             break;                    
                         case 'd':
                         case 'D':
-                            addToArray(ref resultArr[currentOutputPosition], (byte)13, i);
+                            translator.addToArray(ref resultArr[currentOutputPosition], (byte)13, i);
                             break;                    
                         case 'e':
                         case 'E':
-                            addToArray(ref resultArr[currentOutputPosition], (byte)14, i);                              
+                            translator.addToArray(ref resultArr[currentOutputPosition], (byte)14, i);                              
                             break;                    
                         case 'f':
                         case 'F':
-                            addToArray(ref resultArr[currentOutputPosition], (byte)15, i);                           
+                            translator.addToArray(ref resultArr[currentOutputPosition], (byte)15, i);                           
                             break;
                         default:
                             badChar = true;
@@ -156,7 +98,7 @@ namespace translator.Controllers
                     }                       
                 }
             }
-            List<string> outputList = amqpTranslate(resultArr);
+            List<string> outputList = translator.amqpTranslate(resultArr);
             ViewBag.result = outputList;
             return View("Index");
         }
