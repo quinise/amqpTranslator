@@ -8,29 +8,27 @@ using translator.Models;
 
 namespace translator.Controllers
 {
-    public class HomeController : Controller
-    {
+    public class HomeController : Controller {
         [Route("")]
-        public IActionResult Index()
-        {
+        public IActionResult Index() {
             ViewBag.result = " ";
             return View();
         }
+
         [Route("translate")]
-        public IActionResult Translate(TranslatorFormViewModel model)
-        {
+        public IActionResult Translate(TranslatorFormViewModel model) {
             Translator translator = new Translator();
             string result = model.amqpText;
             byte[] resultArr = new byte[result.Length/2];
 
-            if (result == null){
+            if (result == null) {
                 result = " ";
-            } else if(result.Length % 2 != 0){
-                result = "Invalid amqp";
+            } else if(result.Length % 2 != 0) {
+                result = "Invalid AMQP";
             } else {
                 int currentOutputPosition = 0;
                 int i = 0;
-                for(; i < result.Length; i++){
+                for(; i < result.Length; i++) {
                     bool badChar = false;
                     switch (result[i]) {
                         case '0':
@@ -88,23 +86,23 @@ namespace translator.Controllers
                             break;
                         default:
                             badChar = true;
-                            result = "Invalid amqp";
+                            result = "Invalid AMQP";
                             break;
                     }
-                    if (badChar){
+                    if (badChar) {
                         break;
-                    } else if((i % 2) == 1){
+                    } else if ((i % 2) == 1) {
                         currentOutputPosition++;
                     }                       
                 }
             }
+
             List<string> outputList = translator.amqpTranslate(resultArr);
             ViewBag.result = outputList;
             return View("Index");
         }
 
-        public IActionResult Error()
-        {
+        public IActionResult Error() {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }
