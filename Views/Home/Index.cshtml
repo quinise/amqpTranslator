@@ -13,9 +13,17 @@
         <input type="submit" value="Translate">
     </form>
 </div>
-<div class="result-content">
-    @foreach(var message in @ViewBag.result){
+<div>*************** Data ****************</div>
+
+<div class="dataResult-content">
+    @foreach(var message in @ViewBag.dataResult){
         <p>@message</p>
     }
 </div>
-
+<button>
+<div>*************** Metadata ****************</div>
+<div class="metadataResult-content">
+    @foreach(var message in @ViewBag.metadataResult){
+        <p>@message</p>
+    }
+</div>

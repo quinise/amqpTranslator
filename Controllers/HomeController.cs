@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using translator.Models;
 
-namespace translator.Controllers
-{
+namespace translator.Controllers {
     public class HomeController : Controller {
         [Route("")]
         public IActionResult Index() {
-            ViewBag.result = " ";
+            ViewBag.dataResult = " ";
+            ViewBag.metadataResult = " ";
             return View();
         }
 
@@ -97,11 +97,20 @@ namespace translator.Controllers
                 }
             }
 
-            List<string> outputList = translator.amqpTranslate(resultArr);
-            ViewBag.result = outputList;
+            List<Tuple<string, string>> outputList = translator.amqpTranslate(resultArr);
+            List<string> dataResult = new List<string>();
+            List<string> metadataResult = new List<string>();
+            foreach(var element in outputList){
+                if (element.Item1 == "data"){
+                    dataResult.Add(element.Item2);
+                    ViewBag.dataResult = dataResult;
+                } else if (element.Item1 == "metadata"){
+                    metadataResult.Add(element.Item2);
+                    ViewBag.metadataResult = metadataResult;
+                }
+            }            
             return View("Index");
         }
-
         public IActionResult Error() {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }

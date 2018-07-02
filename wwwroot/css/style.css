@@ -8,7 +8,7 @@ input{
     margin: 10px;
 }
 
-.result-content{    
+.dataResult-content, .metadataResult-content{    
     display: block;
     width: 450px;
     margin: 0 auto;
