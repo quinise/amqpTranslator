@@ -47,6 +47,7 @@ namespace translator{
         private const byte bin32 = 0xa0;
         private const byte array8 = 0xb0;
         private const byte array32 = 0xf0;
+        private const byte error1 = 0xd1;
         private const byte openPerformative = 0x10;
         private const byte beginPerformative = 0x11;
         private const byte attachPerformative = 0x12;
@@ -214,8 +215,13 @@ namespace translator{
             setIndex(i);
         }
 
-        public void findUint(List<Tuple<string, string>> currentOutputList, byte[] source, string propertyName){
+        public uint findUint(List<Tuple<string, string>> currentOutputList, byte[] source, string propertyName){
             int i = getIndex();
+            uint sourceUInt = 0;
+
+            if (propertyName == "message format") {
+                currentOutputList.Add(Tuple.Create("metadata", "The upper three octets of a message format code identify a particular message format. The lowest octet indicates the version of said message format. Any given version of a format is forwards compatible with all higher versions.")); 
+            }
 
             if (source[i] == nullValue){
                 i++;
@@ -225,21 +231,25 @@ namespace translator{
                 i++;
                 currentOutputList.Add(Tuple.Create("metadata", "4 byte wide int"));
                 currentOutputList.Add(Tuple.Create("data", propertyName + ": " + getUInt32(source.Skip(i).Take(4).ToArray())));
+                sourceUInt = getUInt32(source.Skip(i).Take(4).ToArray());
                 i += 4;
 
             } else if (source[i] == uInt8) {
                 i++;                
-                currentOutputList.Add(Tuple.Create("metadata", "byte wide frame, max frame size: " + getUInt16(source.Skip(i).Take(2).ToArray())));
+                currentOutputList.Add(Tuple.Create("metadata", "byte wide frame, max frame size: " + getUInt8(source.Skip(i).Take(2).ToArray())));
+                sourceUInt = getUInt8(source.Skip(i).Take(1).ToArray());
                 i += 2;
 
             } else if (source[i] == uInt0) {
                 i++;                
                 currentOutputList.Add(Tuple.Create("metadata", "0 byte wide int " + propertyName));
+                sourceUInt = 0;
                 if (propertyName == "idle timeout"){
                     currentOutputList.Add(Tuple.Create("data", "Idle Timeout: 0 milliseconds"));
                 }
             }
             setIndex(i);
+            return sourceUInt;
         }
         public void findUlong(List<Tuple<string, string>> currentOutputList, byte[] source, string propertyName){
             int i = getIndex();
@@ -477,8 +487,10 @@ namespace translator{
             }
             setIndex(i);
         }
-        public void findSymbol(List<Tuple<string, string>> currentOutputList, byte[] source, string propertyName){
+        public string findSymbol(List<Tuple<string, string>> currentOutputList, byte[] source, string propertyName){
             int i = getIndex();
+            int numCharInSymbol = 0;
+            string sourceSymbol = " ";
             
             if (source[i] == nullValue) {
                 i++;
@@ -486,7 +498,8 @@ namespace translator{
             } else if (source[i] == sym8){
                 i++;
                 currentOutputList.Add(Tuple.Create("metadata", "symbol with 1-byte length"));
-                int numCharInSymbol = source[i];
+                numCharInSymbol = source[i];
+                sourceSymbol = System.Text.Encoding.UTF8.GetString(source, i, numCharInSymbol);
                 i++; 
                 currentOutputList.Add(Tuple.Create("data", propertyName + ": " + System.Text.Encoding.UTF8.GetString(source, i, numCharInSymbol)));
                 i += numCharInSymbol;
@@ -494,16 +507,18 @@ namespace translator{
             } else if (source[i] == sym32){
                 i++;
                 currentOutputList.Add(Tuple.Create("metadata", "symbol with 4-byte length"));
-                int numCharInSymbol = getInt32(source.Skip(i).Take(4).ToArray());                
+                numCharInSymbol = getInt32(source.Skip(i).Take(4).ToArray());                
+                sourceSymbol = System.Text.Encoding.UTF8.GetString(source, i, numCharInSymbol);
                 i += 4;
                 currentOutputList.Add(Tuple.Create("data", propertyName + ": " + System.Text.Encoding.UTF8.GetString(source, i, numCharInSymbol)));
                 i += numCharInSymbol;
             }
 
             setIndex(i);
+            return sourceSymbol;
         }
 
-        public void findList(List<Tuple<string, string>> currentOutputList, byte[] source) {
+        public void findList(List<Tuple<string, string>> currentOutputList, byte[] source, string propertyName) {
             int i = getIndex();
             int numElementsInList = 0;
             byte listType = source[i];
@@ -511,8 +526,9 @@ namespace translator{
             i++;
 
             switch (listType) {
+                //should null type be added to this case statment?
                 case list0:
-                    currentOutputList.Add(Tuple.Create("data","List 0: no elements in open list"));
+                    currentOutputList.Add(Tuple.Create("data","List 0: no elements in" + propertyName + "list"));
                     numElementsInList = 0;
                     i++;
                     break;
@@ -520,7 +536,7 @@ namespace translator{
                     currentOutputList.Add(Tuple.Create("metadata", "List 8, Number bytes wide: " + source[i]));
                     i++;
                     numElementsInList = source[i];
-                    currentOutputList.Add(Tuple.Create("data", "There are " + numElementsInList + " elements in the list" ));
+                    currentOutputList.Add(Tuple.Create("data", "There are " + numElementsInList + " elements in the" + propertyName + "list" ));
                     i++;
                     break;
                 case list32:
@@ -528,7 +544,7 @@ namespace translator{
                     i += 4;
                     currentOutputList.Add(Tuple.Create("data", "List 32, Number of bytes wide: " + numBytesInList));
                     numElementsInList = getInt32(source.Skip(1).Take(4).ToArray());
-                    currentOutputList.Add(Tuple.Create("data","There are " + numElementsInList + " in the list" ));
+                    currentOutputList.Add(Tuple.Create("data","There are " + numElementsInList + " in the" + propertyName +"list" ));
                     i += 4;
                     break;
                 default:
@@ -540,6 +556,7 @@ namespace translator{
         }
 
         //revisit to access key value pairs
+        //add metadata for filter set and node properties map subtypes
         public void findMap(List<Tuple<string, string>> currentOutputList, byte[] source, string propertyName){
             int i = getIndex();
             
@@ -590,6 +607,42 @@ namespace translator{
             
             setIndex(i);
         }
+        // public void getTransactionalState(List<Tuple<string, string>> currentOutputList, byte[] source) {
+        //     int i = getIndex();
+            
+        // }
+        public string getTerminusDurability(List<Tuple<string, string>> currentOutputList, byte[] source) {
+            int i = getIndex();
+            string propertyName = " ";
+            uint terminusDurability = findUint(currentOutputList, source, "durable");
+
+            if (terminusDurability == 0) {
+                propertyName = "none - No terminus state is retained durably";
+            } else if (terminusDurability == 1) {
+                propertyName = "configuration - Only the existence and configuration of the terminus is retained durably";
+            } else if (terminusDurability == 2) {
+                propertyName = "unsettled state - In addition to the existence and configuration of the terminus, the unsettled state for durable messages is retained durably";
+            }
+            return propertyName;
+        }
+
+        public string getTerminusExpiryPolicy(List<Tuple<string, string>> currentOutputList, byte[] source){
+            int i = getIndex();
+            string propertyName = " ";
+            string terminusExpiryPolicy = findSymbol(currentOutputList, source, "expiry policy");
+
+            if(terminusExpiryPolicy == "link-detach") {
+                propertyName = "link detach - The expiry timer starts when terminus is detached";
+            } else if (terminusExpiryPolicy == "session-end") {
+                propertyName = "session end - The expiry timer starts when the most recently associated session is ended";
+            } else if (terminusExpiryPolicy == "connection-close") {
+                propertyName = "connection close - The expiry timer starts when most recently associated connection is closed";
+            } else if (terminusExpiryPolicy == "never") {
+                propertyName = "never - The terminus never expires";
+            }
+            return propertyName;
+
+        }
         public string getSenderSettleMode(List<Tuple<string, string>> currentOutputList, byte[] source){
             int i = getIndex();
             string propertyName = " ";
@@ -617,8 +670,149 @@ namespace translator{
                 propertyName = "second - The receiver will only settle after sending the disposition to the sender and receiving a disposition indicating settlement of the delivery from the sender.";
             }
             return propertyName;
-        }            
+        }
+
+        public string getDeliveryState(List<Tuple<string, string>> currentOutputList, byte[] source) {
+            int i = getIndex();
+            string propertyName = " ";
+            int numElementsInList = 0;
+            byte listType = source[i];
+            int listLength = 0;
+            currentOutputList.Add(Tuple.Create("metadata", "List Type: " + listType.ToString("X2")));
+            i++;
+
+            switch (listType) {
+                case list0:
+                    propertyName = "empty";
+                    currentOutputList.Add(Tuple.Create("data","List 0: no elements in" + propertyName + "list"));
+                    numElementsInList = 0;
+                    i++;
+                    break;
+                //unsure about how to calculate list lenght in these cases
+                case 0x00000023:
+                    propertyName = "received";
+                    currentOutputList.Add(Tuple.Create("metadata", "received list, Number bytes wide: " + source[i]));
+                    i++;
+                    numElementsInList = source[i];
+                    currentOutputList.Add(Tuple.Create("data", "There are " + numElementsInList + " elements in the" + propertyName + "list" ));
+                    i += listLength;
+                    getRecievedState(currentOutputList, source);
+                    break;
+                case 0x00000024:
+                    propertyName = "accepted";
+                    currentOutputList.Add(Tuple.Create("metadata", "received list, Number bytes wide: " + source[i]));
+                    i++;
+                    numElementsInList = source[i];
+                    currentOutputList.Add(Tuple.Create("data", "There are " + numElementsInList + " elements in the" + propertyName + "list" ));
+                    i += listLength;
+                    break;
+                case 0x00000025:
+                    propertyName = "rejected";
+                    currentOutputList.Add(Tuple.Create("metadata", "received list, Number bytes wide: " + source[i]));
+                    i++;
+                    numElementsInList = source[i];
+                    currentOutputList.Add(Tuple.Create("data", "There are " + numElementsInList + " elements in the" + propertyName + "list" ));
+                    i += listLength;
+                    break;
+                case 0x00000026:
+                    propertyName = "released";
+                    currentOutputList.Add(Tuple.Create("metadata", "received list, Number bytes wide: " + source[i]));
+                    i++;
+                    numElementsInList = source[i];
+                    currentOutputList.Add(Tuple.Create("data", "There are " + numElementsInList + " elements in the" + propertyName + "list" ));
+                    i += listLength;
+                    break;
+                case 0x00000027:
+                    propertyName = "modified";
+                    currentOutputList.Add(Tuple.Create("metadata", "received list, Number bytes wide: " + source[i]));
+                    i++;
+                    numElementsInList = source[i];
+                    currentOutputList.Add(Tuple.Create("data", "There are " + numElementsInList + " elements in the" + propertyName + "list" ));
+                    i += listLength;
+                    getModifiedState(currentOutputList, source);
+                    break;
+                default:
+                    currentOutputList.Add(Tuple.Create("metadata", "Invalid list"));
+                    break;
+            }
+            
+            setIndex(i);
+            return propertyName;
+        }     
         
+        public void getRecievedState(List<Tuple<string, string>> currentOutputList, byte[] source) {
+            int i = getIndex();
+            findUint(currentOutputList, source, "section number");
+            findUlong(currentOutputList, source, "section offset");
+        }
+
+        public void getRejectedState(List<Tuple<string, string>> currentOutputList, byte[] source) {
+            int i = getIndex();
+            string propertyName = " ";
+            byte listType = source[i];
+            int numElementsInList = 0;
+            int listLength = 0;
+            currentOutputList.Add(Tuple.Create("metadata", "List Type: " + listType.ToString("X2")));
+            i++;
+
+            switch (listType) {
+                case list0:
+                    propertyName = "empty";
+                    currentOutputList.Add(Tuple.Create("data","List 0: no elements in" + propertyName + "list"));
+                    numElementsInList = 0;
+                    i++;
+                    break;
+                case error1:
+                    i++;
+                    propertyName = "error";
+                    numElementsInList = source[i];
+                    currentOutputList.Add(Tuple.Create("data", "There are " + numElementsInList + " elements in the" + propertyName + "list" ));
+                    i += listLength;
+                    getError(currentOutputList, source);
+                    break;
+            }
+        }
+        public void getModifiedState(List<Tuple<string, string>> currentOutputList, byte[] source) {
+            int i = getIndex();
+            findBool(currentOutputList, source, "delivery-failed");
+            findBool(currentOutputList, source, "undeliverable here");
+            findMap(currentOutputList, source, "message annotations");
+        }
+
+        public void getError(List<Tuple<string, string>> currentOutputList, byte[] source) {
+            findSymbol(currentOutputList, source, "condition");
+            findString(currentOutputList, source, "description");
+            findMap(currentOutputList, source, "info");
+        }
+        private void findSource(List<Tuple<string, string>> currentOutputList, byte[] source, string propertyName) {
+            int i = getIndex();
+            findList(currentOutputList, source, "source");
+            findString(currentOutputList, source, "address-string");
+            findUint(currentOutputList, source, getTerminusDurability(currentOutputList, source));
+            findSymbol(currentOutputList, source, getTerminusExpiryPolicy(currentOutputList, source));
+            findUint(currentOutputList, source, "timeout (in seconds)");
+            findBool(currentOutputList, source, "dynamic");
+            findMap(currentOutputList, source, "dynamic-node-properties");
+            findSymbol(currentOutputList, source, "distribution mode");
+            findMap(currentOutputList, source, "filter");
+            // find default outcome, unsure of what type/composite this is
+            findSymbol(currentOutputList, source, "outcomes");
+            findSymbol(currentOutputList, source, "capabilites");
+            setIndex(i);
+        }
+
+        private void findTarget(List<Tuple<string, string>> currentOutputList, byte[] source, string propertyName) {
+            int i = getIndex();
+            findList(currentOutputList, source, "target list");
+            findString(currentOutputList, source, "address-string");
+            findUint(currentOutputList, source, getTerminusDurability(currentOutputList, source));
+            findSymbol(currentOutputList, source, getTerminusExpiryPolicy(currentOutputList, source));
+            findUint(currentOutputList, source, "timeout (in seconds)");
+            findBool(currentOutputList, source, "dynamic");
+            findMap(currentOutputList, source, "dynamic-node-properties");
+            findSymbol(currentOutputList, source, "capabilites");
+            setIndex(i);
+        }
         public List<Tuple<string, string>> amqpTranslate(byte[] source) {
             List<Tuple<string, string>> currentOutputList = new List<Tuple<string, string>>();
 
@@ -680,7 +874,7 @@ namespace translator{
                 switch (performative) {
                     case openPerformative:
                         currentOutputList.Add(Tuple.Create("data", "Perfomative: OPEN"));
-                        findList(currentOutputList, source);
+                        findList(currentOutputList, source, "open list");
                         findString(currentOutputList, source, "container id");
                         findString(currentOutputList, source, "hostname");
                         findUint(currentOutputList, source, "max frame");
@@ -694,7 +888,7 @@ namespace translator{
                         break;
                     case beginPerformative:
                         currentOutputList.Add(Tuple.Create("data", "Performative: BEGIN"));
-                        findList(currentOutputList, source);
+                        findList(currentOutputList, source, "begin list");
                         findUshort(currentOutputList, source, "remote channel");
                         findUint(currentOutputList, source, "transfer number");
                         findUint(currentOutputList, source, "incoming window");
@@ -706,31 +900,78 @@ namespace translator{
                         break;
                     case attachPerformative:
                         currentOutputList.Add(Tuple.Create("data", "Performative: ATTACH"));
-                        findList(currentOutputList, source);
+                        findList(currentOutputList, source, "attach list");
                         findString(currentOutputList, source, "name");
                         findUint(currentOutputList, source, "handle");
                         findBool(currentOutputList, source, "role");
                         findUbyte(currentOutputList, source, getSenderSettleMode(currentOutputList, source));
                         findUbyte(currentOutputList, source, getRecieverSettleMode(currentOutputList, source));
-
+                        findSource(currentOutputList, source, "source");
+                        findTarget(currentOutputList, source, "target");
+                        findMap(currentOutputList, source, "unsettled");
+                        findBool(currentOutputList, source, "incomplete unsettled");
+                        findUint(currentOutputList, source, "initial delivery count");
+                        findUlong(currentOutputList, source, "max message size");
+                        findSymbol(currentOutputList, source, "offered Capabilities");
+                        findSymbol(currentOutputList, source, "desired Capabilities");
+                        findMap(currentOutputList, source, "properties");
                         break;
                     case flowPerformative:
                         currentOutputList.Add(Tuple.Create("data", "Performative: FLOW"));
+                        findList(currentOutputList, source, "flow list");
+                        findUint(currentOutputList, source, "next incoming id");
+                        findUint(currentOutputList, source, "incoming window");
+                        findUint(currentOutputList, source, "next outgoing id");
+                        findUint(currentOutputList, source, "outgoing window");
+                        findUint(currentOutputList, source, "handle");
+                        findUint(currentOutputList, source, "delivery count");
+                        findUint(currentOutputList, source, "link credit");
+                        findUint(currentOutputList, source, "available");
+                        findBool(currentOutputList, source, "drain");
+                        findBool(currentOutputList, source, "echo");
+                        findMap(currentOutputList, source, "properties");
                         break;
                     case transferPerformative:
                         currentOutputList.Add(Tuple.Create("data", "Performative: TRANSFER"));
+                        findList(currentOutputList, source, "transer list");
+                        findUint(currentOutputList, source, "handle");
+                        findUint(currentOutputList, source, "delivery id");
+                        findBinary(currentOutputList, source, "delivery tag");
+                        findUint(currentOutputList, source, "message format");
+                        findBool(currentOutputList, source, "settled");
+                        findBool(currentOutputList, source, "more");
+                        findUbyte(currentOutputList, source, getRecieverSettleMode(currentOutputList, source));
+                        getDeliveryState(currentOutputList, source);
+                        findBool(currentOutputList, source, "resume");
+                        findBool(currentOutputList, source, "aborted");
+                        findBool(currentOutputList, source, "batchable");
                         break;              
                     case dispositionPerformative:
                         currentOutputList.Add(Tuple.Create("data", "Performative: DISPOSITION"));
+                        findList(currentOutputList, source, "disposition list");
+                        findBool(currentOutputList, source, "role");
+                        findUint(currentOutputList, source, "first");
+                        findUint(currentOutputList, source, "last");
+                        findBool(currentOutputList, source, "settled");
+                        getDeliveryState(currentOutputList, source);
+                        findBool(currentOutputList, source, "batchable");
                         break;                    
                     case detachPerformative:
                         currentOutputList.Add(Tuple.Create("data", "Performative: DETACH"));
+                        findList(currentOutputList, source, "detach list");
+                        findUint(currentOutputList, source, "handle");
+                        findBool(currentOutputList, source, "closed");
+                        getError(currentOutputList, source);
                         break;
                     case endPerformative:
+                        findList(currentOutputList, source, "end list");
                         currentOutputList.Add(Tuple.Create("data", "Performative: END"));
+                        getError(currentOutputList, source);
                         break;
                     case closePerformative:
                         currentOutputList.Add(Tuple.Create("data", "Performative: CLOSE"));
+                        findList(currentOutputList, source, "close list");
+                        getError(currentOutputList, source);
                         break;
                     default:
                         currentOutputList.Add(Tuple.Create("data", "Performative not yet implemented"));
