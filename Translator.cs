@@ -48,6 +48,11 @@ namespace translator{
         private const byte array8 = 0xb0;
         private const byte array32 = 0xf0;
         private const byte error1 = 0xd1;
+        private const byte recievedList8 = 0x00000023;
+        private const byte acceptedList8 = 0x00000024;
+        private const byte rejectedList8 = 0x00000025;
+        private const byte releasedList8 = 0x00000026;
+        private const byte modifiedList8 = 0x00000027;
         private const byte openPerformative = 0x10;
         private const byte beginPerformative = 0x11;
         private const byte attachPerformative = 0x12;
@@ -59,7 +64,7 @@ namespace translator{
         private const byte closePerformative = 0x18;
 
         public void addToArray(ref byte destination, byte source, int index){
-            if (index % 2 == 0){
+            if (index % 2 == 0) {
                 source = (byte)(source << 4);
             }
             destination |= source;  
@@ -68,19 +73,19 @@ namespace translator{
             return source[0];
         }
         public int getInt16(byte[] source) {
-            byte[] destination = new Byte[2];
+            byte[] destination = new byte[2];
             Array.Copy(source, destination, 2);
             Array.Reverse(destination);
             return BitConverter.ToInt16(destination, 0);
         }
-        public int getInt32(byte[] source){
-            byte[] destination = new Byte[4];
+        public int getInt32(byte[] source) {
+            byte[] destination = new byte[4];
             Array.Copy(source, destination, 4);
             Array.Reverse(destination);
             return BitConverter.ToInt32(destination, 0);
         }
-        public long getInt64(byte[] source){
-            byte[] destination = new Byte[8];
+        public long getInt64(byte[] source) {
+            byte[] destination = new byte[8];
             Array.Copy(source, destination, 8);
             Array.Reverse(destination);
             return BitConverter.ToInt64(destination, 0);
@@ -88,111 +93,111 @@ namespace translator{
         public uint getUInt8(byte[] source) {
             return source[0];
         }
-        public uint getUInt32(byte[] source){
-            byte[] destination = new Byte[4];
+        public uint getUInt32(byte[] source) {
+            byte[] destination = new byte[4];
             Array.Copy(source, destination, 4);
             Array.Reverse(destination);
             return BitConverter.ToUInt32(destination, 0);
         }
-        public uint getUInt16(byte[] source){
-            byte[] destination = new Byte[2];
+        public uint getUInt16(byte[] source) {
+            byte[] destination = new byte[2];
             Array.Copy(source, destination, 2);
             Array.Reverse(destination);
             return BitConverter.ToUInt16(destination, 0);
         }
-        public ulong getLong8(byte[] source){
+        public ulong getLong8(byte[] source) {
             return source[0];
         }
-        public ulong getULong8(byte[] source){
-            byte[] destination = new Byte[0];
+        public ulong getULong8(byte[] source) {
+            byte[] destination = new byte[0];
             Array.Copy(source, destination, 0);
             return BitConverter.ToUInt16(destination, 0);
         }
         public long getLong64(byte[] source) {
-            byte[] destination = new Byte[8];
+            byte[] destination = new byte[8];
             Array.Copy(source, destination, 8);
             Array.Reverse(destination);
             return BitConverter.ToInt64(destination, 0);
         }
-       public ulong getULong64(byte[] source){
-            byte[] destination = new Byte[8];
+       public ulong getULong64(byte[] source) {
+            byte[] destination = new byte[8];
             Array.Copy(source, destination, 8);
             Array.Reverse(destination);
             return BitConverter.ToUInt64(destination, 0);
         }
 
-        public double getFloat32(byte[] source){
-            byte[] destination = new Byte[4];
+        public double getFloat32(byte[] source) {
+            byte[] destination = new byte[4];
             Array.Copy(source, destination, 4);
             Array.Reverse(destination);
             return BitConverter.ToDouble(destination, 0);
         }
 
-        public double getDouble64(byte[] source){
-            byte[] destination = new Byte[8];
+        public double getDouble64(byte[] source) {
+            byte[] destination = new byte[8];
             Array.Copy(source, destination, 8);
             Array.Reverse(destination);
             return BitConverter.ToDouble(destination, 0);
         }
-        public double getDecimal32(byte[] source){
-            byte[] destination = new Byte[4];
+        public double getDecimal32(byte[] source) {
+            byte[] destination = new byte[4];
             Array.Copy(source, destination, 4);
             Array.Reverse(destination);
             return BitConverter.ToDouble(destination, 0);
         }
-        public double getDecimal64(byte[] source){
-            byte[] destination = new Byte[8];
+        public double getDecimal64(byte[] source) {
+            byte[] destination = new byte[8];
             Array.Copy(source, destination, 8);
             Array.Reverse(destination);
             return BitConverter.ToDouble(destination, 0);
         }
-        public double getDecimal128(byte[] source){
-            byte[] destination = new Byte[16];
+        public double getDecimal128(byte[] source) {
+            byte[] destination = new byte[16];
             Array.Copy(source, destination, 16);
             Array.Reverse(destination);
             return BitConverter.ToDouble(destination, 0);
         }
-        public char getChar32(byte[] source){
-            byte[] destination = new Byte[4];
+        public char getChar32(byte[] source) {
+            byte[] destination = new byte[4];
             Array.Copy(source, destination, 4);
             Array.Reverse(destination);
             return BitConverter.ToChar(destination, 0);
         }
-        public int getIndex(){
+        public int getIndex() {
             return index;
         }
-        public void setIndex(int i){
+        public void setIndex(int i) {
             index = i;
         }
-        public void findBool(List<Tuple<string, string>> currentOutputList, byte[] source, string propertyName){
+        public void findBool(List<Tuple<string, string>> currentOutputList, byte[] source, string propertyName) {
             int i = getIndex();
 
-            if (source[i] == nullValue){
+            if (source[i] == nullValue) {
                 i++;
                 currentOutputList.Add(Tuple.Create("data", propertyName + " not present"));
                 i++;
-            } else if (source[i] == bool2 ){
+            } else if (source[i] == bool2 ) {
                 i++;
                 currentOutputList.Add(Tuple.Create("metadata", "boolean with the octet 0x00 being false and octet 0x01 being true"));
                 i++;
-            } else if (source[i] == bool0){
+            } else if (source[i] == bool0) {
                 i++;
                 currentOutputList.Add(Tuple.Create("data", propertyName + ": sender boolean value false"));
                 i++;
-            } else if (source[i] == bool1){
+            } else if (source[i] == bool1) {
                 i++;
                 currentOutputList.Add(Tuple.Create("data", propertyName + ": receiver boolean value true"));
                 i++;
             }
             setIndex(i);
         }
-        public void findUbyte(List<Tuple<string, string>> currentOutputList, byte[] source, string propertyName){
+        public void findUbyte(List<Tuple<string, string>> currentOutputList, byte[] source, string propertyName) {
             int i = getIndex();
-            if (source[i] == nullValue){
+            if (source[i] == nullValue) {
                 i++;
                 currentOutputList.Add(Tuple.Create("data", propertyName + " not present"));
                 i++;
-            } else if (source[i] == uByte0 ){
+            } else if (source[i] == uByte0 ) {
                 i++;
                 currentOutputList.Add(Tuple.Create("metadata", "8-bit unsigned integer"));
                 currentOutputList.Add(Tuple.Create("data", propertyName + ": " + getUInt16(source.Skip(i).Take(2).ToArray())));
@@ -209,7 +214,7 @@ namespace translator{
             } else if (source[i] == uShort16){
                 i++;
                 currentOutputList.Add(Tuple.Create("metadata", "16-bit unsigned int "));
-                currentOutputList.Add(Tuple.Create("data", propertyName + getUInt16(source.Skip(i).Take(2).ToArray())));
+                currentOutputList.Add(Tuple.Create("data", propertyName + " " + getUInt16(source.Skip(i).Take(2).ToArray())));
                 i += 2;
             } 
             setIndex(i);
@@ -220,14 +225,14 @@ namespace translator{
             uint sourceUInt = 0;
 
             if (propertyName == "message format") {
-                currentOutputList.Add(Tuple.Create("metadata", "The upper three octets of a message format code identify a particular message format. The lowest octet indicates the version of said message format. Any given version of a format is forwards compatible with all higher versions.")); 
+                currentOutputList.Add(Tuple.Create("metadata", "The upper three octets of a message format code identify a particular message format. The lowest octet indicates the version of said message format. Any given version of a format is forwards compatible with all higher versions")); 
             }
 
-            if (source[i] == nullValue){
+            if (source[i] == nullValue) {
                 i++;
                 currentOutputList.Add(Tuple.Create("metadata", "null value, " + propertyName + " not present")); 
             
-             } else if(source[i] == uInt32 || propertyName == "transfer number"){
+             } else if(source[i] == uInt32){
                 i++;
                 currentOutputList.Add(Tuple.Create("metadata", "4 byte wide int"));
                 currentOutputList.Add(Tuple.Create("data", propertyName + ": " + getUInt32(source.Skip(i).Take(4).ToArray())));
@@ -254,11 +259,11 @@ namespace translator{
         public void findUlong(List<Tuple<string, string>> currentOutputList, byte[] source, string propertyName){
             int i = getIndex();
 
-            if (source[i] == nullValue){
+            if (source[i] == nullValue) {
                 i++;
                 currentOutputList.Add(Tuple.Create("metadata", "null value, " + propertyName + " not present")); 
             
-             } else if(source[i] == uLong64){
+             } else if(source[i] == uLong64) {
                 i++;
                 currentOutputList.Add(Tuple.Create("metadata", "8 byte wide, unisgned long"));
                 currentOutputList.Add(Tuple.Create("data", propertyName + ": " + getULong64(source.Skip(i).Take(8).ToArray())));
@@ -281,10 +286,10 @@ namespace translator{
         public void findByte(List<Tuple<string, string>> currentOutputList, byte[] source, string propertyName) {
             int i = getIndex();
             
-            if (source[i] == nullValue){
+            if (source[i] == nullValue) {
                 i++;
                 currentOutputList.Add(Tuple.Create("metadata", "null value, " + propertyName + " not present")); 
-            } else if (source[i] == byte8){
+            } else if (source[i] == byte8) {
                 i++;
                 currentOutputList.Add(Tuple.Create("data", propertyName + ", an 8-bit two's compliment integer in network byte order: " + getInt8(source.Skip(i).Take(1).ToArray())));
                 i++;
@@ -295,7 +300,7 @@ namespace translator{
         public void findShort(List<Tuple<string, string>> currentOutputList, byte[] source, string propertyName) {
             int i = getIndex();
             
-            if (source[i] == nullValue){
+            if (source[i] == nullValue) {
                 i++;
                 currentOutputList.Add(Tuple.Create("metadata", "null value, " + propertyName + " not present")); 
             } else if (source[i] == short16) {
@@ -327,7 +332,7 @@ namespace translator{
         public void findLong(List<Tuple<string, string>> currentOutputList, byte[] source, string propertyName) {
             int i = getIndex();
             
-            if (source[i] == nullValue){
+            if (source[i] == nullValue) {
                 i++;
                 currentOutputList.Add(Tuple.Create("metadata", "null value, " + propertyName + " not present"));
             } else if (source[i] == long64) {
@@ -345,10 +350,10 @@ namespace translator{
         public void findFloat(List<Tuple<string, string>> currentOutputList, byte[] source, string propertyName) {
             int i = getIndex();
             
-            if (source[i] == nullValue){
+            if (source[i] == nullValue) {
                 i++;
                 currentOutputList.Add(Tuple.Create("metadata", "null value, " + propertyName + " not present")); 
-            } else if (source[i] == float32){
+            } else if (source[i] == float32) {
                 i++;
                 currentOutputList.Add(Tuple.Create("data", propertyName + getFloat32(source.Skip(i).Take(4).ToArray()) + ": float" )); 
                 i += 4;
@@ -359,11 +364,11 @@ namespace translator{
         public void findDouble(List<Tuple<string, string>> currentOutputList, byte[] source, string propertyName) {
             int i = getIndex();
             
-            if (source[i] == nullValue){
+            if (source[i] == nullValue) {
                 i++;
                 currentOutputList.Add(Tuple.Create("metadata", "null value, " + propertyName + " not present")); 
             
-            } else if (source[i] == double64){
+            } else if (source[i] == double64) {
                 i++;
                 currentOutputList.Add(Tuple.Create("data", propertyName + getDouble64(source.Skip(i).Take(8).ToArray()) + ": double" )); 
                 i += 8;
@@ -374,7 +379,7 @@ namespace translator{
         public void findDecimal(List<Tuple<string, string>> currentOutputList, byte[] source, string propertyName) {
             int i = getIndex();
             
-            if (source[i] == nullValue){
+            if (source[i] == nullValue) {
                 i++;
                 currentOutputList.Add(Tuple.Create("metadata", "null value, " + propertyName + " not present")); 
             } else if (source[i] == decimal32) {
@@ -400,7 +405,7 @@ namespace translator{
         public void findChar(List<Tuple<string, string>> currentOutputList, byte[] source, string propertyName) {
             int i = getIndex();
             
-            if (source[i] == nullValue){
+            if (source[i] == nullValue) {
                 i++;
                 currentOutputList.Add(Tuple.Create("metadata", "null value, " + propertyName + " not present"));  
             } else if (source[i] == char32) {
@@ -415,7 +420,7 @@ namespace translator{
         public void findTimestamp(List<Tuple<string, string>> currentOutputList, byte[] source, string propertyName) {
             int i = getIndex();
             
-            if (source[i] == nullValue){
+            if (source[i] == nullValue) {
                 i++;
                 currentOutputList.Add(Tuple.Create("metadata", "null value, " + propertyName + " not present")); 
             } else if (source[i] == timestamp64) {
@@ -430,7 +435,7 @@ namespace translator{
         public void findUUId(List<Tuple<string, string>> currentOutputList, byte[] source, string propertyName) {
             int i = getIndex();
             
-            if (source[i] == nullValue){
+            if (source[i] == nullValue) {
                 i++;
                 currentOutputList.Add(Tuple.Create("metadata", "null value, " + propertyName + " not present"));
             } else if (source[i] == uuid16) {
@@ -446,7 +451,7 @@ namespace translator{
         public void findBinary(List<Tuple<string, string>> currentOutputList, byte[] source, string propertyName) {
             int i = getIndex();
             
-            if (source[i] == nullValue){
+            if (source[i] == nullValue) {
                 i++;
                 currentOutputList.Add(Tuple.Create("metadata", "null value, " + propertyName + " not present")); 
             } else if (source[i] == bin32) {
@@ -464,7 +469,7 @@ namespace translator{
         public void findString(List<Tuple<string, string>> currentOutputList, byte[] source, string propertyName){
           int i = getIndex();
 
-            if (source[i] == nullValue){
+            if (source[i] == nullValue) {
                 i++;
                 currentOutputList.Add(Tuple.Create("data", propertyName + " not present"));
 
@@ -476,9 +481,9 @@ namespace translator{
                 currentOutputList.Add(Tuple.Create("metadata", "String descriptor length can fit into 4 bytes. Length is : " + length));                
                 currentOutputList.Add(Tuple.Create("data", propertyName + ": " + System.Text.Encoding.UTF8.GetString(hostname, 0, length)));
                 i = i + length;
-            } else if (source[i] == str32Utf){
+            } else if (source[i] == str32Utf) {
                  i++;
-                int length = getInt32(source.Skip(1).Take(4).ToArray());
+                int length = getInt32(source.Skip(i).Take(4).ToArray());
                 i += 4;  
                 byte[] hostname = source.Skip(i).Take(length).ToArray();
                 i = i + length;
@@ -487,7 +492,7 @@ namespace translator{
             }
             setIndex(i);
         }
-        public string findSymbol(List<Tuple<string, string>> currentOutputList, byte[] source, string propertyName){
+        public string findSymbol(List<Tuple<string, string>> currentOutputList, byte[] source, string propertyName) {
             int i = getIndex();
             int numCharInSymbol = 0;
             string sourceSymbol = " ";
@@ -495,7 +500,7 @@ namespace translator{
             if (source[i] == nullValue) {
                 i++;
                 currentOutputList.Add(Tuple.Create("metadata", "null value " + propertyName + " not present")); 
-            } else if (source[i] == sym8){
+            } else if (source[i] == sym8) {
                 i++;
                 currentOutputList.Add(Tuple.Create("metadata", "symbol with 1-byte length"));
                 numCharInSymbol = source[i];
@@ -504,7 +509,7 @@ namespace translator{
                 currentOutputList.Add(Tuple.Create("data", propertyName + ": " + System.Text.Encoding.UTF8.GetString(source, i, numCharInSymbol)));
                 i += numCharInSymbol;
 
-            } else if (source[i] == sym32){
+            } else if (source[i] == sym32) {
                 i++;
                 currentOutputList.Add(Tuple.Create("metadata", "symbol with 4-byte length"));
                 numCharInSymbol = getInt32(source.Skip(i).Take(4).ToArray());                
@@ -528,7 +533,7 @@ namespace translator{
             switch (listType) {
                 //should null type be added to this case statment?
                 case list0:
-                    currentOutputList.Add(Tuple.Create("data","List 0: no elements in" + propertyName + "list"));
+                    currentOutputList.Add(Tuple.Create("data","List 0: no elements in " + propertyName));
                     numElementsInList = 0;
                     i++;
                     break;
@@ -536,15 +541,15 @@ namespace translator{
                     currentOutputList.Add(Tuple.Create("metadata", "List 8, Number bytes wide: " + source[i]));
                     i++;
                     numElementsInList = source[i];
-                    currentOutputList.Add(Tuple.Create("data", "There are " + numElementsInList + " elements in the" + propertyName + "list" ));
+                    currentOutputList.Add(Tuple.Create("data", "There are " + numElementsInList + " elements in the " + propertyName ));
                     i++;
                     break;
                 case list32:
-                    int numBytesInList = getInt32(source.Skip(1).Take(4).ToArray());
+                    int numBytesInList = getInt32(source.Skip(i).Take(4).ToArray());
                     i += 4;
                     currentOutputList.Add(Tuple.Create("data", "List 32, Number of bytes wide: " + numBytesInList));
-                    numElementsInList = getInt32(source.Skip(1).Take(4).ToArray());
-                    currentOutputList.Add(Tuple.Create("data","There are " + numElementsInList + " in the" + propertyName +"list" ));
+                    numElementsInList = getInt32(source.Skip(i).Take(4).ToArray());
+                    currentOutputList.Add(Tuple.Create("data","There are " + numElementsInList + " elements in the " + propertyName));
                     i += 4;
                     break;
                 default:
@@ -557,10 +562,10 @@ namespace translator{
 
         //revisit to access key value pairs
         //add metadata for filter set and node properties map subtypes
-        public void findMap(List<Tuple<string, string>> currentOutputList, byte[] source, string propertyName){
+        public void findMap(List<Tuple<string, string>> currentOutputList, byte[] source, string propertyName) {
             int i = getIndex();
             
-            if (source[i] == nullValue){
+            if (source[i] == nullValue) {
                 i++;
                 currentOutputList.Add(Tuple.Create("data", propertyName + " not present"));
             } else if (source[i] == map8) {
@@ -591,7 +596,7 @@ namespace translator{
         public void findArray(List<Tuple<string, string>> currentOutputList, byte[] source, string propertyName) {
             int i = getIndex();
             
-            if (source[i] == nullValue){
+            if (source[i] == nullValue) {
                 i++;
                 currentOutputList.Add(Tuple.Create("metadata", "null value, " + propertyName + " not present")); 
             } else if (source[i] == array32) {
@@ -607,10 +612,7 @@ namespace translator{
             
             setIndex(i);
         }
-        // public void getTransactionalState(List<Tuple<string, string>> currentOutputList, byte[] source) {
-        //     int i = getIndex();
-            
-        // }
+        
         public string getTerminusDurability(List<Tuple<string, string>> currentOutputList, byte[] source) {
             int i = getIndex();
             string propertyName = " ";
@@ -626,7 +628,7 @@ namespace translator{
             return propertyName;
         }
 
-        public string getTerminusExpiryPolicy(List<Tuple<string, string>> currentOutputList, byte[] source){
+        public string getTerminusExpiryPolicy(List<Tuple<string, string>> currentOutputList, byte[] source) {
             int i = getIndex();
             string propertyName = " ";
             string terminusExpiryPolicy = findSymbol(currentOutputList, source, "expiry policy");
@@ -643,7 +645,7 @@ namespace translator{
             return propertyName;
 
         }
-        public string getSenderSettleMode(List<Tuple<string, string>> currentOutputList, byte[] source){
+        public string getSenderSettleMode(List<Tuple<string, string>> currentOutputList, byte[] source) {
             int i = getIndex();
             string propertyName = " ";
             int senderSettle = getInt8(source.Skip(i).Take(1).ToArray());
@@ -658,7 +660,7 @@ namespace translator{
             }
             return propertyName;
         }
-        public string getRecieverSettleMode(List<Tuple<string, string>> currentOutputList, byte[] source){
+        public string getRecieverSettleMode(List<Tuple<string, string>> currentOutputList, byte[] source) {
             int i = getIndex();
             string propertyName = " ";
             int senderSettle = getInt8(source.Skip(i).Take(1).ToArray());
@@ -677,7 +679,6 @@ namespace translator{
             string propertyName = " ";
             int numElementsInList = 0;
             byte listType = source[i];
-            int listLength = 0;
             currentOutputList.Add(Tuple.Create("metadata", "List Type: " + listType.ToString("X2")));
             i++;
 
@@ -688,47 +689,47 @@ namespace translator{
                     numElementsInList = 0;
                     i++;
                     break;
-                //unsure about how to calculate list lenght in these cases
-                case 0x00000023:
-                    propertyName = "received";
+                case recievedList8:
+                    propertyName = "received delivery state";
                     currentOutputList.Add(Tuple.Create("metadata", "received list, Number bytes wide: " + source[i]));
                     i++;
                     numElementsInList = source[i];
                     currentOutputList.Add(Tuple.Create("data", "There are " + numElementsInList + " elements in the" + propertyName + "list" ));
-                    i += listLength;
+                    i++;
                     getRecievedState(currentOutputList, source);
                     break;
-                case 0x00000024:
-                    propertyName = "accepted";
+                case acceptedList8:
+                    propertyName = "accepted delivery state";
                     currentOutputList.Add(Tuple.Create("metadata", "received list, Number bytes wide: " + source[i]));
                     i++;
                     numElementsInList = source[i];
                     currentOutputList.Add(Tuple.Create("data", "There are " + numElementsInList + " elements in the" + propertyName + "list" ));
-                    i += listLength;
+                    i++;
                     break;
-                case 0x00000025:
-                    propertyName = "rejected";
+                case rejectedList8:
+                    propertyName = "rejected delivery state";
                     currentOutputList.Add(Tuple.Create("metadata", "received list, Number bytes wide: " + source[i]));
                     i++;
                     numElementsInList = source[i];
                     currentOutputList.Add(Tuple.Create("data", "There are " + numElementsInList + " elements in the" + propertyName + "list" ));
-                    i += listLength;
+                    i++;
+                    getRejectedState(currentOutputList, source);
                     break;
-                case 0x00000026:
-                    propertyName = "released";
+                case releasedList8:
+                    propertyName = "released delivery state";
                     currentOutputList.Add(Tuple.Create("metadata", "received list, Number bytes wide: " + source[i]));
                     i++;
                     numElementsInList = source[i];
                     currentOutputList.Add(Tuple.Create("data", "There are " + numElementsInList + " elements in the" + propertyName + "list" ));
-                    i += listLength;
+                    i++;
                     break;
-                case 0x00000027:
-                    propertyName = "modified";
+                case modifiedList8:
+                    propertyName = "modified delivery state";
                     currentOutputList.Add(Tuple.Create("metadata", "received list, Number bytes wide: " + source[i]));
                     i++;
                     numElementsInList = source[i];
                     currentOutputList.Add(Tuple.Create("data", "There are " + numElementsInList + " elements in the" + propertyName + "list" ));
-                    i += listLength;
+                    i++;
                     getModifiedState(currentOutputList, source);
                     break;
                 default:
@@ -741,7 +742,6 @@ namespace translator{
         }     
         
         public void getRecievedState(List<Tuple<string, string>> currentOutputList, byte[] source) {
-            int i = getIndex();
             findUint(currentOutputList, source, "section number");
             findUlong(currentOutputList, source, "section offset");
         }
@@ -773,7 +773,6 @@ namespace translator{
             }
         }
         public void getModifiedState(List<Tuple<string, string>> currentOutputList, byte[] source) {
-            int i = getIndex();
             findBool(currentOutputList, source, "delivery-failed");
             findBool(currentOutputList, source, "undeliverable here");
             findMap(currentOutputList, source, "message annotations");
@@ -785,7 +784,6 @@ namespace translator{
             findMap(currentOutputList, source, "info");
         }
         private void findSource(List<Tuple<string, string>> currentOutputList, byte[] source, string propertyName) {
-            int i = getIndex();
             findList(currentOutputList, source, "source");
             findString(currentOutputList, source, "address-string");
             findUint(currentOutputList, source, getTerminusDurability(currentOutputList, source));
@@ -796,13 +794,12 @@ namespace translator{
             findSymbol(currentOutputList, source, "distribution mode");
             findMap(currentOutputList, source, "filter");
             // find default outcome, unsure of what type/composite this is
+
             findSymbol(currentOutputList, source, "outcomes");
             findSymbol(currentOutputList, source, "capabilites");
-            setIndex(i);
         }
 
         private void findTarget(List<Tuple<string, string>> currentOutputList, byte[] source, string propertyName) {
-            int i = getIndex();
             findList(currentOutputList, source, "target list");
             findString(currentOutputList, source, "address-string");
             findUint(currentOutputList, source, getTerminusDurability(currentOutputList, source));
@@ -811,7 +808,6 @@ namespace translator{
             findBool(currentOutputList, source, "dynamic");
             findMap(currentOutputList, source, "dynamic-node-properties");
             findSymbol(currentOutputList, source, "capabilites");
-            setIndex(i);
         }
         public List<Tuple<string, string>> amqpTranslate(byte[] source) {
             List<Tuple<string, string>> currentOutputList = new List<Tuple<string, string>>();
@@ -823,7 +819,7 @@ namespace translator{
                 currentOutputList.Add(Tuple.Create("data", "Frame length does not match provided frame"));
                 return currentOutputList;
             } else {
-                currentOutputList.Add(Tuple.Create("data", "Frame Length: "+ lengthOfFrame +" bytes "));
+                currentOutputList.Add(Tuple.Create("data", "Frame Length: "+ lengthOfFrame + " bytes "));
                 int dOff = 4 * source[i]; 
                 currentOutputList.Add(Tuple.Create("data", "Data offset at position: " + dOff));
                 i++;
@@ -851,7 +847,7 @@ namespace translator{
                     i = dOff;
                 }
 
-                if (i == source.Length){
+                if (i == source.Length) {
                     currentOutputList.Add(Tuple.Create("data", "No frame body present"));
                     return currentOutputList;
                 }
@@ -890,7 +886,7 @@ namespace translator{
                         currentOutputList.Add(Tuple.Create("data", "Performative: BEGIN"));
                         findList(currentOutputList, source, "begin list");
                         findUshort(currentOutputList, source, "remote channel");
-                        findUint(currentOutputList, source, "transfer number");
+                        findUint(currentOutputList, source, "next outgoing id");
                         findUint(currentOutputList, source, "incoming window");
                         findUint(currentOutputList, source, "outgoing window");
                         findUint(currentOutputList, source, "handle max");
@@ -933,7 +929,7 @@ namespace translator{
                         break;
                     case transferPerformative:
                         currentOutputList.Add(Tuple.Create("data", "Performative: TRANSFER"));
-                        findList(currentOutputList, source, "transer list");
+                        findList(currentOutputList, source, "transfer list");
                         findUint(currentOutputList, source, "handle");
                         findUint(currentOutputList, source, "delivery id");
                         findBinary(currentOutputList, source, "delivery tag");
@@ -964,8 +960,8 @@ namespace translator{
                         getError(currentOutputList, source);
                         break;
                     case endPerformative:
-                        findList(currentOutputList, source, "end list");
                         currentOutputList.Add(Tuple.Create("data", "Performative: END"));
+                        findList(currentOutputList, source, "end list");
                         getError(currentOutputList, source);
                         break;
                     case closePerformative:
