@@ -2,8 +2,7 @@
 
 [![License](https://img.shields.io/badge/license-MIT-blue)](https://opensource.org/licenses/MIT)  
 [![.NET](https://img.shields.io/badge/.NET-6.0-purple?logo=dotnet)](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)  
-[![C#](https://img.shields.io/badge/language-C%23-239120?logo=csharp&logoColor=white)]()  
-[![Build](https://img.shields.io/badge/build-passing-brightgreen)]()  
+[![C#](https://img.shields.io/badge/language-C%23-239120?logo=csharp&logoColor=white)](https://learn.microsoft.com/en-us/dotnet/csharp/)  
 
 A C#/.NET utility that translates AMQP (Advanced Message Queuing Protocol) messages into human-readable text.
 This project was built as a lightweight tool for inspecting and understanding AMQP frames without needing to run a broker.
